@@ -60,7 +60,7 @@ COMENZI PENTRU RULARE:
 3. Predictie pe imagini: python predict.py
 
 STATUSUL FINAL:
-Sistemul este functional si gata pentru antrenare. Poate lucra cu:
+Sistemul nu este functional inca, cand o sa fie gata o sa poata fi folosit pentru antrenare. Poate lucra cu:
 - Imagini sintetice pentru testare
 - CIFAR10 dataset cu 60.000 imagini reale
 - Imagini proprii incarcate de utilizator

@@ -1,0 +1,68 @@
+REZUMAT PROIECT TENSORFLOW - IDENTIFICARE PLANTE
+
+Data: 2 Decembrie 2025
+
+OBIECTIVUL PROIECTULUI:
+Creare unui sistem de identificare a plantelor din imagini folosind TensorFlow si deep learning. Sistemul trebuie sa recunoasca tipul de planta si sa furnizeze un ghid complet de ingrijire pentru fiecare planta identificata.
+
+CE AM FACUT:
+
+1. SETARE MEDIU PYTHON
+   - Am configurat Python 3.11.9 din directorul Program Files
+   - Am instalat pachetele necesare: TensorFlow, NumPy, Matplotlib, Pillow, SciPy
+
+2. CREAREA STRUCTURII PROIECTULUI
+   - Am creat fisierul principal "proiect_rn.py" cu toata logica aplicatiei
+   - Am organizat codul in clase: PlantIdentificationModel si PlantCareGuide
+
+3. BAZA DE DATE PLANTE
+   - Am adaugat 5 tipuri de plante in baza de date: trandafir, floarea-soarelui, orhidee, lalele, cactus
+   - Pentru fiecare planta am adaugat: nume stiintific, programul de udat, cerintele de lumina, umiditate, temperatura, tip sol, ingrasamant, propagare, probleme frecvente, nivel dificultate
+
+4. MODELUL DE INVATARE AUTOMAT
+   - Am construit un model de transfer learning folosind MobileNetV2 pre-antrenat pe ImageNet
+   - Modelul are 2.619.461 de parametri
+   - Am adaugat straturi de Dropout si Dense layers personalizate
+
+5. CREAREA SCRIPTURILOR DE ANTRENARE SI PREDICTIE
+   - training_script.py - antrenarea modelului
+   - predict.py - predictiile pe imagini noi
+   - setup_images.py - generarea de imagini sintetice de test
+   - use_flower_datasets.py - descarcare de imagini reale CIFAR10
+
+6. FUNCTIONALITATI PRINCIPALE
+   - Extragerea imaginilor din arhive ZIP (plante1.zip si plante2.zip)
+   - Organizarea automata a imaginilor dupa tipul de planta
+   - Generarea de imagini sintetice pentru testare
+   - Antrenarea modelului neural
+   - Predictii pe imagini noi cu nivelul de incredere
+   - Afisarea ghidului complet de ingrijire pentru planta identificata
+   - Salvarea si incarcare a modelelor antrenate
+
+7. SOLUTII PENTRU DATASET
+   - Am implementat extragerea din arhivele locale
+   - Am creat generare automata de imagini sintetice pentru testare
+   - Am integrat CIFAR10 dataset din TensorFlow (60.000 imagini reale)
+   - Am creat script pentru descarcarea de imagini de la Kaggle si alte surse
+
+FISIERE CREATE:
+- proiect_rn.py (574 linii) - codul principal
+- training_script.py - script de antrenare
+- predict.py - script de predictie
+- setup_images.py - generare imagini de test
+- organize_images.py - organizare imagini
+- download_dataset.py - descarcare dataset
+- use_flower_datasets.py - integrare CIFAR10
+
+COMENZI PENTRU RULARE:
+1. Generare imagini si antrenare: python setup_images.py && python training_script.py
+2. Antrenare cu CIFAR10: python use_flower_datasets.py (alegeti optiunea 1)
+3. Predictie pe imagini: python predict.py
+
+STATUSUL FINAL:
+Sistemul nu este functional inca, cand o sa fie gata o sa poata fi folosit pentru antrenare. Poate lucra cu:
+- Imagini sintetice pentru testare
+- CIFAR10 dataset cu 60.000 imagini reale
+- Imagini proprii incarcate de utilizator
+
+Modelul poate identifica 5 tipuri de plante si furniza informatii detaliate de ingrijire pentru fiecare.

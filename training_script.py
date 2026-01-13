@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 # Add project directory to path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__name__).parent))
 
 from proiect_rn import train_model, PlantIdentificationModel
 

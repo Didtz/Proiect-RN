@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Care Guide - Plant Identifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🌿 Plant Identifier</h1>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/identify">Identify</a></li>
+                <li><a href="/database">Database</a></li>
+                <li><a href="/guide">Care Guide</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="guide-section">
+            <h2>Plant Care Guide</h2>
+            <p>Learn how to care for your plants</p>
+
+            <div class="guide-content">
+                <h3>General Plant Care Tips</h3>
+                
+                <div class="tip">
+                    <h4>💧 Watering</h4>
+                    <ul>
+                        <li>Water when the top inch of soil feels dry</li>
+                        <li>Ensure proper drainage to prevent root rot</li>
+                        <li>Water less frequently in winter</li>
+                        <li>Use room-temperature water</li>
+                    </ul>
+                </div>
+
+                <div class="tip">
+                    <h4>☀️ Light</h4>
+                    <ul>
+                        <li>Most plants need 6-8 hours of light daily</li>
+                        <li>Position near windows when possible</li>
+                        <li>Rotate plants regularly for even growth</li>
+                        <li>Some plants prefer indirect light</li>
+                    </ul>
+                </div>
+
+                <div class="tip">
+                    <h4>🌡️ Temperature & Humidity</h4>
+                    <ul>
+                        <li>Most indoor plants prefer 65-75°F (18-24°C)</li>
+                        <li>Avoid sudden temperature changes</li>
+                        <li>Maintain humidity levels appropriate to plant type</li>
+                        <li>Keep away from heat sources and cold drafts</li>
+                    </ul>
+                </div>
+
+                <div class="tip">
+                    <h4>🌱 Soil & Fertilizer</h4>
+                    <ul>
+                        <li>Use well-draining potting soil</li>
+                        <li>Fertilize during growing season (spring/summer)</li>
+                        <li>Follow package instructions for fertilizer amounts</li>
+                        <li>Repot plants every 1-2 years</li>
+                    </ul>
+                </div>
+
+                <div class="tip">
+                    <h4>🔍 Common Problems</h4>
+                    <ul>
+                        <li><strong>Yellow leaves:</strong> Often due to overwatering</li>
+                        <li><strong>Brown tips:</strong> May indicate low humidity</li>
+                        <li><strong>Pale leaves:</strong> Possible sign of insufficient light</li>
+                        <li><strong>Drooping:</strong> Check watering schedule and drainage</li>
+                    </ul>
+                </div>
+
+                <div class="tip">
+                    <h4>✂️ Pruning & Maintenance</h4>
+                    <ul>
+                        <li>Remove dead or yellowing leaves regularly</li>
+                        <li>Prune in spring to encourage bushier growth</li>
+                        <li>Clean leaves with a damp cloth</li>
+                        <li>Monitor for pests and diseases</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Plant Identifier. Built with TensorFlow & Flask.</p>
+    </footer>
+</body>
+</html>

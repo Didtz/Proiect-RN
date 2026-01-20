@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Identifier - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🌿 Plant Identifier</h1>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/identify">Identify</a></li>
+                <li><a href="/database">Database</a></li>
+                <li><a href="/guide">Care Guide</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Welcome to Plant Identifier</h2>
+            <p>Upload an image to identify plants and get care tips</p>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📸</div>
+                <h3>Quick Identification</h3>
+                <p>Upload a photo and instantly identify the plant species</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📚</div>
+                <h3>Plant Database</h3>
+                <p>Browse {{ plant_count }} plants with detailed information</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💧</div>
+                <h3>Care Tips</h3>
+                <p>Learn watering, light, and maintenance requirements</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Easy to Use</h3>
+                <p>Simple interface, no technical knowledge required</p>
+            </div>
+        </section>
+
+        <section class="cta">
+            <h3>Get Started</h3>
+            <a href="/identify" class="btn btn-primary">Identify a Plant</a>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Plant Identifier. Built with TensorFlow & Flask.</p>
+    </footer>
+</body>
+</html>

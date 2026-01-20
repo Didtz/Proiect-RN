@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Database - Plant Identifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🌿 Plant Identifier</h1>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/identify">Identify</a></li>
+                <li><a href="/database">Database</a></li>
+                <li><a href="/guide">Care Guide</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="database-section">
+            <h2>Plant Database</h2>
+            <p>Explore our collection of plants</p>
+
+            <div class="plants-grid">
+                {% for plant_name, plant_info in plants.items() %}
+                <div class="plant-card">
+                    <div class="plant-header">
+                        <h3>{{ plant_name|title }}</h3>
+                        <span class="difficulty {{ plant_info.difficulty|lower }}">
+                            {{ plant_info.difficulty }}
+                        </span>
+                    </div>
+                    <p class="scientific-name">{{ plant_info.scientific_name }}</p>
+                    <p class="description">{{ plant_info.description }}</p>
+                    
+                    <div class="plant-details">
+                        <div class="detail">
+                            <strong>💧 Watering:</strong>
+                            <p>{{ plant_info.watering }}</p>
+                        </div>
+                        <div class="detail">
+                            <strong>☀️ Light:</strong>
+                            <p>{{ plant_info.light }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Plant Identifier. Built with TensorFlow & Flask.</p>
+    </footer>
+</body>
+</html>

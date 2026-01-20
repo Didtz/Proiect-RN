@@ -1,6 +1,7 @@
 """
 Plant Identification using TensorFlow
 A project to identify plants from images and provide care guides
+Now supports all plants in the training_data folder!
 """
 
 import os
@@ -27,76 +28,47 @@ CONFIG = {
     'test_split': 0.1,
 }
 
-# Plant Care Guides Database
-PLANT_CARE_GUIDES = {
-    'rose': {
-        'scientific_name': 'Rosa spp.',
-        'watering': 'Water deeply when soil is dry 1-2 inches below surface. Daily in hot weather.',
-        'light': 'Full sun (6+ hours daily)',
-        'humidity': '40-70%',
-        'temperature': '65-75°F (18-24°C)',
-        'soil': 'Well-draining, pH 6.0-6.5',
-        'fertilizer': 'Monthly during growing season',
-        'propagation': 'Cuttings in spring',
-        'common_issues': ['Powdery mildew', 'Black spot', 'Aphids'],
-        'difficulty': 'Intermediate'
-    },
-    'sunflower': {
-        'scientific_name': 'Helianthus annuus',
-        'watering': 'Regular watering, 1-2 inches per week',
-        'light': 'Full sun (6-8 hours daily)',
-        'humidity': '40-60%',
-        'temperature': '70-85°F (21-29°C)',
-        'soil': 'Well-draining, neutral pH',
-        'fertilizer': 'Monthly balanced fertilizer',
-        'propagation': 'Seeds in spring',
-        'common_issues': ['Sunflower moths', 'Rust', 'Root rot'],
-        'difficulty': 'Easy'
-    },
-    'orchid': {
-        'scientific_name': 'Orchidaceae',
-        'watering': 'Once per week, avoid standing water',
-        'light': 'Bright, indirect light',
-        'humidity': '50-70%',
-        'temperature': '65-75°F day, 55-65°F night',
-        'soil': 'Orchid bark mix',
-        'fertilizer': 'Diluted weekly during growing season',
-        'propagation': 'Division or keiki',
-        'common_issues': ['Root rot', 'Scale insects', 'Flower drop'],
-        'difficulty': 'Advanced'
-    },
-    'tulip': {
-        'scientific_name': 'Tulipa spp.',
-        'watering': 'Moderate, allow soil to dry between watering',
-        'light': 'Full sun to partial shade',
-        'humidity': '30-40%',
-        'temperature': '55-70°F (13-21°C)',
-        'soil': 'Well-draining, sandy loam',
-        'fertilizer': 'Spring and fall',
-        'propagation': 'Bulb division',
-        'common_issues': ['Tulip breaking virus', 'Botrytis', 'Slugs'],
-        'difficulty': 'Easy'
-    },
-    'cactus': {
-        'scientific_name': 'Cactaceae',
-        'watering': 'Sparingly, only when soil is completely dry',
-        'light': 'Full sun',
-        'humidity': '20-30%',
-        'temperature': '70-90°F (21-32°C)',
-        'soil': 'Well-draining, sandy/rocky',
-        'fertilizer': 'Rarely, light during growing season',
-        'propagation': 'Cuttings or seeds',
-        'common_issues': ['Root rot', 'Scale', 'Mealybugs'],
-        'difficulty': 'Easy'
-    }
+
+def get_plant_classes_from_training_data(training_data_path='training_data'):
+    """Dynamically get all plant classes from training_data folder"""
+    try:
+        path = Path(training_data_path)
+        if path.exists():
+            classes = sorted([d.name for d in path.iterdir() if d.is_dir()])
+            print(f"\n✅ Found {len(classes)} plant classes: {classes}")
+            return classes
+        else:
+            print(f"❌ Training data folder not found: {training_data_path}")
+            return []
+    except Exception as e:
+        print(f"❌ Error reading training data: {e}")
+        return []
+
+
+# Dynamically get class names from training data
+PLANT_CLASSES = get_plant_classes_from_training_data()
+
+# Default care guides (can be extended)
+DEFAULT_CARE_GUIDE = {
+    'scientific_name': 'Unknown',
+    'watering': 'Water when soil is dry',
+    'light': 'Bright light',
+    'humidity': '40-60%',
+    'temperature': '65-75°F (18-24°C)',
+    'soil': 'Well-draining',
+    'fertilizer': 'During growing season',
+    'propagation': 'Cuttings or seeds',
+    'common_issues': ['Pest damage', 'Root issues'],
+    'difficulty': 'Intermediate'
 }
 
 
 class PlantIdentificationModel:
     """Handles model creation, training, and inference for plant identification"""
     
-    def __init__(self, num_classes=len(PLANT_CARE_GUIDES)):
-        self.num_classes = num_classes
+    def __init__(self, class_names=None):
+        self.class_names = class_names or PLANT_CLASSES
+        self.num_classes = len(self.class_names)
         self.model = None
         self.history = None
         self.class_names = list(PLANT_CARE_GUIDES.keys())

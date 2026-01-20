@@ -1,6 +1,6 @@
 """
-Train the plant identification model using Oxford Flowers dataset
-This script downloads and trains a CNN model for plant classification
+Train the plant identification model
+Automatically detects all plants in training_data folder and trains on them
 """
 
 import os
@@ -8,11 +8,11 @@ import json
 import numpy as np
 from pathlib import Path
 import tensorflow as tf
-import tensorflow_datasets as tfds
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import logging
 from datetime import datetime
 
@@ -32,22 +32,42 @@ CONFIG = {
     'validation_split': 0.2,
 }
 
-# Oxford Flowers has 102 flower classes
-NUM_CLASSES = 102
-
 # Create necessary directories
 os.makedirs('models', exist_ok=True)
 os.makedirs('training_data', exist_ok=True)
 
+
+def get_plant_classes_from_training_data(training_data_path='training_data'):
+    """Dynamically get all plant classes from training_data folder"""
+    try:
+        path = Path(training_data_path)
+        if path.exists():
+            classes = sorted([d.name for d in path.iterdir() if d.is_dir()])
+            logger.info(f"Found {len(classes)} plant classes: {classes}")
+            return classes
+        else:
+            logger.error(f"Training data folder not found: {training_data_path}")
+            return []
+    except Exception as e:
+        logger.error(f"Error reading training data: {e}")
+        return []
+
+
 class PlantModelTrainer:
-    """Train plant identification model"""
+    """Train plant identification model on all available plant classes"""
 
     def __init__(self):
         self.model = None
-        self.class_names = list(range(102))  # Oxford Flowers has 102 classes
+        self.class_names = get_plant_classes_from_training_data()
+        self.num_classes = len(self.class_names)
         self.history = None
+        
+        if not self.class_names:
+            raise ValueError("No plant classes found in training_data folder!")
+        
+        logger.info(f"Training on {self.num_classes} plant classes: {self.class_names}")
 
-    def build_model(self, num_classes=NUM_CLASSES):
+    def build_model(self):
         """Build transfer learning model using MobileNetV2"""
         logger.info("Building model...")
         
@@ -70,14 +90,14 @@ class PlantModelTrainer:
             layers.Dropout(0.5),
             layers.Dense(128, activation='relu'),
             layers.Dropout(0.3),
-            layers.Dense(num_classes, activation='softmax')
+            layers.Dense(self.num_classes, activation='softmax')
         ])
 
         # Compile model
         optimizer = Adam(learning_rate=CONFIG['learning_rate'])
         model.compile(
             optimizer=optimizer,
-            loss='sparse_categorical_crossentropy',
+            loss='categorical_crossentropy',
             metrics=['accuracy']
         )
 
@@ -85,42 +105,62 @@ class PlantModelTrainer:
         logger.info("Model built successfully")
         return model
 
-    def create_synthetic_data(self):
-        """Download Oxford Flowers dataset from TensorFlow Datasets"""
-        logger.info("Downloading Oxford Flowers dataset...")
+    def load_local_training_data(self):
+        """Load images from local training_data folder using ImageDataGenerator"""
+        logger.info("Loading images from local training_data folder...")
         
-        try:
-            # Download Oxford Flowers 102 dataset
-            self.train_data, self.test_data = tfds.load(
-                'oxford_flowers102',
-                split=['train', 'test'],
-                as_supervised=True,
-                with_info=False,
-                download=True
-            )
-            
-            logger.info("Dataset downloaded successfully")
-            
-            # Count images
-            train_count = sum(1 for _ in self.train_data)
-            test_count = sum(1 for _ in self.test_data)
-            logger.info(f"Training images: {train_count}")
-            logger.info(f"Test images: {test_count}")
-            
-        except Exception as e:
-            logger.error(f"Error downloading dataset: {e}")
-            logger.info("Make sure you have internet connection and sufficient disk space")
-            raise
+        # Image data generator for training with augmentation
+        train_datagen = ImageDataGenerator(
+            rescale=1./255,
+            rotation_range=40,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
+            horizontal_flip=True,
+            vertical_flip=True,
+            zoom_range=0.2,
+            fill_mode='nearest',
+            validation_split=CONFIG['validation_split']
+        )
+        
+        # Load training data
+        self.train_data = train_datagen.flow_from_directory(
+            'training_data',
+            target_size=CONFIG['image_size'],
+            batch_size=CONFIG['batch_size'],
+            class_mode='categorical',
+            subset='training',
+            shuffle=True
+        )
+        
+        # Load validation data
+        self.validation_data = train_datagen.flow_from_directory(
+            'training_data',
+            target_size=CONFIG['image_size'],
+            batch_size=CONFIG['batch_size'],
+            class_mode='categorical',
+            subset='validation',
+            shuffle=True
+        )
+        
+        logger.info(f"Training samples: {self.train_data.samples}")
+        logger.info(f"Validation samples: {self.validation_data.samples}")
+        logger.info(f"Classes: {list(self.train_data.class_indices.keys())}")
+        
+        # Verify class names match
+        loaded_classes = list(self.train_data.class_indices.keys())
+        self.class_names = sorted(loaded_classes)  # Use actual loaded classes
+        logger.info(f"Loaded {len(self.class_names)} classes: {self.class_names}")
 
     def train(self):
-        """Train the model"""
+        """Train the model on local training data"""
         if self.model is None:
             self.build_model()
 
-        logger.info("Preparing Oxford Flowers dataset...")
-        self.prepare_data()
+        logger.info("Loading training data from local folder...")
+        self.load_local_training_data()
 
         logger.info(f"Starting training for {CONFIG['epochs']} epochs...")
+        logger.info(f"Training on {len(self.class_names)} plant classes")
 
         # Callbacks
         callbacks = [
@@ -148,8 +188,10 @@ class PlantModelTrainer:
         # Train model
         self.history = self.model.fit(
             self.train_data,
+            steps_per_epoch=self.train_data.samples // CONFIG['batch_size'],
+            validation_data=self.validation_data,
+            validation_steps=self.validation_data.samples // CONFIG['batch_size'],
             epochs=CONFIG['epochs'],
-            validation_data=self.test_data,
             callbacks=callbacks,
             verbose=1
         )
@@ -157,52 +199,18 @@ class PlantModelTrainer:
         logger.info("Training completed")
         return self.history
 
-    def prepare_data(self):
-        """Prepare and preprocess Oxford Flowers dataset"""
-        logger.info("Preparing dataset for training...")
-        
-        def preprocess_image(image, label):
-            # Resize image
-            image = tf.image.resize(image, CONFIG['image_size'])
-            # Normalize to [0, 1]
-            image = image / 255.0
-            return image, label
-        
-        def augment_image(image, label):
-            # Data augmentation
-            image = tf.image.random_flip_left_right(image)
-            image = tf.image.random_flip_up_down(image)
-            image = tf.image.rot90(image, k=tf.random.uniform([], 0, 4, dtype=tf.int32))
-            return image, label
-        
-        # Prepare training data
-        self.train_data = self.train_data.map(preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
-        self.train_data = self.train_data.map(augment_image, num_parallel_calls=tf.data.AUTOTUNE)
-        self.train_data = self.train_data.batch(CONFIG['batch_size'])
-        self.train_data = self.train_data.prefetch(tf.data.AUTOTUNE)
-        
-        # Prepare validation data
-        self.test_data = self.test_data.map(preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
-        self.test_data = self.test_data.batch(CONFIG['batch_size'])
-        self.test_data = self.test_data.prefetch(tf.data.AUTOTUNE)
-        
-        logger.info("Dataset ready for training")
-
-        logger.info("Training completed")
-        return self.history
-
     def evaluate(self):
-        """Evaluate the model on test set"""
+        """Evaluate the model on validation set"""
         if self.model is None:
             logger.error("Model not trained. Please train first.")
             return None
 
-        logger.info("Evaluating model on test set...")
+        logger.info("Evaluating model on validation set...")
         
         # Evaluate
-        loss, accuracy = self.model.evaluate(self.test_data, verbose=1)
-        logger.info(f"Test Loss: {loss:.4f}")
-        logger.info(f"Test Accuracy: {accuracy:.4f}")
+        loss, accuracy = self.model.evaluate(self.validation_data, verbose=1)
+        logger.info(f"Validation Loss: {loss:.4f}")
+        logger.info(f"Validation Accuracy: {accuracy:.4f}")
 
         return {'loss': loss, 'accuracy': accuracy}
 
@@ -270,47 +278,50 @@ class PlantModelTrainer:
 
 def main():
     """Main training function"""
-    logger.info("=" * 50)
+    logger.info("=" * 60)
     logger.info("Plant Identification Model Training")
-    logger.info("Using Oxford Flowers Dataset")
-    logger.info("=" * 50)
+    logger.info("Using local training_data folder")
+    logger.info("=" * 60)
 
     # Initialize trainer
-    trainer = PlantModelTrainer()
-
-    # Download dataset
-    logger.info("\nStep 1: Downloading Oxford Flowers dataset...")
-    trainer.create_synthetic_data()
+    try:
+        trainer = PlantModelTrainer()
+    except ValueError as e:
+        logger.error(f"Error: {e}")
+        logger.error("Please add plant images to training_data folder first!")
+        logger.error("Structure: training_data/plantname/image1.jpg, image2.jpg, ...")
+        return
 
     # Build model
-    logger.info("\nStep 2: Building model architecture...")
+    logger.info("\nStep 1: Building model architecture...")
     trainer.build_model()
 
     # Train model
-    logger.info("\nStep 3: Training the model...")
+    logger.info("\nStep 2: Training the model...")
+    logger.info(f"Classes to train on: {trainer.class_names}")
     trainer.train()
 
     # Evaluate model
-    logger.info("\nStep 4: Evaluating model...")
+    logger.info("\nStep 3: Evaluating model...")
     trainer.evaluate()
 
     # Save model
-    logger.info("\nStep 5: Saving model...")
+    logger.info("\nStep 4: Saving model...")
     trainer.save_model('models/plant_model.h5')
 
     # Plot training history
-    logger.info("\nStep 6: Generating training plots...")
+    logger.info("\nStep 5: Generating training plots...")
     try:
         trainer.plot_history()
     except Exception as e:
         logger.warning(f"Could not plot history: {e}")
 
-    logger.info("\n" + "=" * 50)
-    logger.info("Training completed successfully!")
-    logger.info("Model saved to: models/plant_model.h5")
-    logger.info("Dataset: Oxford Flowers 102")
-    logger.info("Classes: 102 flower species")
-    logger.info("=" * 50)
+    logger.info("\n" + "=" * 60)
+    logger.info("✅ Training completed successfully!")
+    logger.info(f"Model saved to: models/plant_model.h5")
+    logger.info(f"Trained on {len(trainer.class_names)} plant classes")
+    logger.info(f"Classes: {', '.join(trainer.class_names)}")
+    logger.info("=" * 60)
 
 
 if __name__ == '__main__':
